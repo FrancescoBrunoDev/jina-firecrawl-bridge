@@ -109,7 +109,7 @@ async def generic_error_handler(request: Request, exc: Exception) -> JSONRespons
 async def auth_middleware(request: Request, call_next):
     """Inject auth check for all API routes except health."""
     path = request.url.path
-    if path.startswith("/v1/") and path != "/v1/health":
+    if (path.startswith("/v1/") or path.startswith("/v2/")) and not path.endswith("/health"):
         try:
             _check_auth(request)
         except HTTPException:
@@ -199,6 +199,29 @@ async def crawl_status(crawl_id: str) -> CrawlStatusResponse:
         success=True,
         status="completed",
     )
+
+
+# ── V2 Routes (same logic, different prefix for SDK v4+) ────────────────
+
+
+@app.get("/v2/health", response_model=HealthResponse)
+async def health_v2() -> HealthResponse:
+    return await health()
+
+
+@app.post("/v2/scrape", response_model=ScrapeResponse)
+async def scrape_v2(body: ScrapeRequest) -> ScrapeResponse:
+    return await scrape(body)
+
+
+@app.post("/v2/crawl", response_model=CrawlResponse)
+async def crawl_v2(body: CrawlRequest) -> CrawlResponse:
+    return await crawl(body)
+
+
+@app.get("/v2/crawl/{crawl_id}", response_model=CrawlStatusResponse)
+async def crawl_status_v2(crawl_id: str) -> CrawlStatusResponse:
+    return await crawl_status(crawl_id)
 
 
 # ── Main ───────────────────────────────────────────────────────────────
