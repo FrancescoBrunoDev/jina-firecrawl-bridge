@@ -1,0 +1,10 @@
+services:
+  bridge:
+    build: .
+    ports:
+      - "3838:3838"
+    environment:
+      JINA_BASE_URL: http://raspberrypi2:7262
+      LOG_LEVEL: info
+      BRIDGE_API_KEY: "${BRIDGE_API_KEY:-}"
+    restart: unless-stopped
